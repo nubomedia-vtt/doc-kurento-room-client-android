@@ -1,31 +1,24 @@
-kurento-room-client-android
-===========================
+[![License badge](https://img.shields.io/badge/license-Apache2-orange.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
-This repository contains Kurento Room API for Android.
+doc-kurento-room-client-android
+===============================
+
+This repository contains documentation for Kurento Room API for Android. Made with [Sphinx] and [Read-the-docs] 
+theme. The built documentation can be found in [project documentation page].
 
 This project is part of [NUBOMEDIA].
 
 Repository structure
 --------------------
-This repository consists of an Android Studio library project with gradle build scripts. 
-
-Documentation
---------------------
-Javadoc is available in [Github]. The more detailed Developers Guide and Installation Guide are available at  
-[project documentation page].
+This repository consists of a Sphinx/Readthedocs compatible project.
 
 Usage
 --------
-You can import this project to your own Android Studio project via Maven (jCenter or Maven Central) by adding the following line to module's `build.gradle` file:
-```
-compile 'fi.vtt.nubomedia:kurento-room-client-android:(version-code)'
-```
-
-The latest version code of the artifact can be found on [maven artifact page].
+After cloning the project, you may build it locally by navigating to `source` folder and commanding `sphinx-build.exe . _build`
 
 Source
 ------
-The source code is available in [Github]
+The source code of the project itself is available in [Github]
 
 Licensing and distribution
 --------------------------
@@ -72,5 +65,6 @@ Support is provided through the [Nubomedia Public Mailing List]
 [NUBOMEDIA]: http://www.nubomedia.eu
 [Github]: https://github.com/nubomedia-vtt/kurento-room-client-android
 [Nubomedia Public Mailing List]: https://groups.google.com/forum/#!forum/nubomedia-dev
-[project documentation page]: http://kurento-room-client-android.readthedocs.org/en/latest/
-[maven artifact page]: http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22fi.vtt.nubomedia%22%20AND%20a%3A%22kurento-room-client-android%22
+[project documentation page]: http://doc-kurento-room-client-android.readthedocs.org
+[Sphinx]: http://sphinx-doc.org/
+[Read-the-docs]: http://read-the-docs.readthedocs.org/
