@@ -3,7 +3,7 @@
 
 doc-kurento-room-client-android
 ===============================
-
+ 
 This repository contains documentation for Kurento Room API for Android. Made with [Sphinx] and [Read-the-docs] 
 theme. The built documentation can be found in [project documentation page].
 
