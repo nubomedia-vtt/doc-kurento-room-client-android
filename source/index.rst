@@ -3,14 +3,13 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Nubomedia-VTT kurento-room-client-android's documentation!
-=====================================================================
+Kurento Room Client For Android
+===============================
 
-Contents:
+Table of Contents:
 
 .. toctree::
   README.rst
-  DevelopersGuide.rst
   InstallationGuide.rst
-  License.rst
+  DevelopersGuide.rst
 
