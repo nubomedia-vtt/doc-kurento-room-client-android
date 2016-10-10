@@ -4,6 +4,8 @@ Developer Guide
 
 This documents provides a tutorial on how to utilize the kurento-room-client-android library for your project. The tutorial is made for Android Studio, but the same procedure applies to other IDEs as well.
 
+This documentation is made for library version 1.1.0+ and may not be fully applicable to older versions.
+
 Setting up a new project
 ========================
 
@@ -117,6 +119,8 @@ Once the join is complete, the event ``onRoomResponse()`` is fired in ``MainActi
         }
     }
 
+The identifier, 123, is just a randomly selected number and you may use any integer you wish. The generic idea is that when you send a request with a specific id number, you will know that a received response is bound to that particular request pointed by the identifier.
+    
 Dealing with errors
 ===================
 If you run this example multiple times you will notice that the ``onRoomResponse`` may not always appear, so what's wrong? Fill in the ``onRoomError`` event to see if there are error messages:
@@ -151,7 +155,7 @@ After doing this and running the example again, you may receive a log message ``
 * 803 TRANSPORT_ERROR_CODE
 * 999 GENERIC_ERROR_CODE
 
-Code 104 means that your request was not successful and you are not currently in the room. Now you may add the following handler to your ``onRoomError`` event:
+Code 104 means that you are already in the room. This is because our example does not explicitly tell the server that we want to leave the room when the application terminates. So your request was not successful and you are not currently in the room. To find out how to leave a room, refer to section "Leaving a room" below. But in any case, you may add the following handler to your ``onRoomError`` event:
 
 .. code:: java
 
@@ -161,8 +165,8 @@ Code 104 means that your request was not successful and you are not currently in
             Log.d(TAG, "User with the same name already in the room!");
             // Do some other stuff
         }
-    }
-
+    }    
+    
 If you receive an error code which is not defined in the Android room API, you can also refer to the room exception codes in the server source:
 
 https://github.com/Kurento/kurento-room/blob/master/kurento-room-sdk/src/main/java/org/kurento/room/exception/RoomException.java
@@ -210,15 +214,39 @@ http://doc-webrtcpeer-android.readthedocs.io/en/latest/
 
 In this tutorial we are going to go through the room part of multimedia connectivity. You will learn how to signal your intention to publish your own video stream to the server. We will also go through how to keep track deal with events and to signal intention to receive video from other users.
     
+Dealing with ICE candidates
+===========================
+ICE refers to Interactive Connectivity Establishment, which is a fundamental concept in establishing connectivity between peers. An ICE candidate refers to a piece of information on how to connect to a certain peer. So in short, ICE candidate is a "connectivity ticket" to a peer.
+
+When developing a client application for Kurento room server, you'll be dealing with two kinds of ICE candidates: your own connection ICE candidates and the ICE candidates of other peers. Most of ICE stuff belongs to ``webrtcpeer-android`` library, but there is one method which is provided by this library which is ``sendOnIceCandidate``.
+
+Since ``webrtcpeer-android`` library does not have any information on rooms or their users, function ``sendOnIceCandidate`` is used to bridge these two libraries together. Most likely you will be using this method in ``onIceCandidate`` of class ``NBMWebRTCPeer`` in ``webrtcpeer-android`` library.
+
+.. code:: java
+
+    boolean myIceSent = false;
+
+    @Override
+    public void onIceCandidate(IceCandidate iceCandidate, NBMPeerConnection nbmPeerConnection) {
+        if (!myIceSent) {
+            kurentoRoomAPI.sendOnIceCandidate("MyUsername", iceCandidate.sdp, iceCandidate.sdpMid, Integer.toString(iceCandidate.sdpMLineIndex), 126);
+            myIceSent = true;
+        } else {
+            kurentoRoomAPI.sendOnIceCandidate("MyRoomPeer", iceCandidate.sdp, iceCandidate.sdpMid, Integer.toString(iceCandidate.sdpMLineIndex), 126);
+        }
+    }
+    
+The first call ``sendOnIceCandidate`` captures the creation of your own connectivity ticket, while the second one handles the connectivity of your peer.
+    
 Publish video
 =============
 When you are ready to send your own video, call ``sendPublishVideo`` as follows:
 
 .. code:: java  
 
-    kurentoRoomAPI.sendPublishVideo(description, false, 126);
+    kurentoRoomAPI.sendPublishVideo(description, false, 127);
     
-The call is fundamentally the same what we did before, so you will have to again associate an id (126) for the call. The first parameter, ``description``, is a Session Description Protocol (SDP )string describing the features of your media stream. Usually you don't construct these strings yourself, but instead use ``webrtcpeer-android`` library to generate it.
+The call is fundamentally the same what we did before, so you will have to again associate an id for the call. The first parameter, ``description``, is a Session Description Protocol (SDP) string describing the features of your media stream. Usually you don't construct these strings yourself, but instead use ``webrtcpeer-android`` library to generate it.
 
 The second parameter is loopback. If you set it true, the server sends your own video back to you. Usually you want to set it to false and just show the locally generated video, but if you have a use case where the server for example applies a filter to the video streams, you want the video to make a round trip on the server before showing it even to the user themselves.
 
@@ -233,12 +261,12 @@ To unpublish your own video stream in the room, simply call
 Receive video
 =============
 
-To receive video from another peer in the same room, you will have to use the following call. The first parameter consists of: the name of the user, underscore, and the video source. Currently only "webcam" is supported. So the final parameter becomes "MyRoomPeer_webcam". The second parameter is the session description as in the previous section, and the last one is the response id.
+To receive video from another peer in the same room, you will have to use the following call. The first parameter is the name of the user. The second one is the source of the stream. Currently only "webcam" is supported. The third parameter is the session description as in the "Publish video" section, and the last one is the response id.
 
 .. code:: java  
     
     String username = "MyRoomPeer";
-    kurentoRoomAPI.sendReceiveVideoFrom(username + "_webcam", description, 127);
+    kurentoRoomAPI.sendReceiveVideoFrom(username, "webcam", description, 129);
 
 Stop receiving video
 ====================
@@ -247,7 +275,7 @@ To tell the server that you no longer want to receive a certain video stream, ma
 
 .. code:: java  
 
-    kurentoRoomAPI.sendUnsubscribeFromVideo(username, "webcam", description, 128);
+    kurentoRoomAPI.sendUnsubscribeFromVideo(username, "webcam", description, 130);
     
 Now the parameters are simply the username and a constant string "webcam".
     
@@ -270,15 +298,15 @@ To disconnect from a room and to avoid a dangling idle user staying in the room 
 
 .. code:: java
 
-    kurentoRoomAPI.sendLeaveRoom(124);
+    kurentoRoomAPI.sendLeaveRoom(131);
     
-Typically in this kind of scenario you will not wait for the server to respond. However, if your app was not to terminate but instead join another room, you can still handle the responses as usual by using the request id 124:
+Typically in this kind of scenario you will not wait for the server to respond. However, if your app was not to terminate but instead join another room, you can still handle the responses as usual by using the request id 131:
 
 .. code:: java
 
     @Override
     public void onRoomResponse(RoomResponse response) {
-        if (response.getId() == 124) {
+        if (response.getId() == 131) {
             Log.d(TAG, "Successfully left the room!");
         }
     }
@@ -293,7 +321,7 @@ Placement of the ``sendLeaveRoom`` is a bit tricky if you want to disconnect fro
         super.onDestroy();
     }
     
-You are very unlikely to get disconnected from the room since the threads handling the request will be terminated before the message gets sent. Therefore it is easier just not to leave the room if the application gets destroyed.
+You will very likely stay in the room since the threads handling the request will be terminated before the message gets sent. Therefore it is easier just not to leave the room if the application gets destroyed and let the server auto-disconnect your client.
     
 Adding a trusted self-signed certificate
 ========================================
